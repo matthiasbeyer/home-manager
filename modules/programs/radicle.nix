@@ -73,12 +73,15 @@ in
   options = {
     programs.radicle = {
       enable = mkEnableOption "Radicle";
+
       cli = {
         package = mkPackageOption pkgs "radicle-cli" { };
       };
+
       remote-helper = {
         package = mkPackageOption pkgs "radicle-remote-helper" { };
       };
+
       uri = {
         rad = {
           browser = {
@@ -88,11 +91,13 @@ in
               defaultText = "`true` if a suitable value for ${toString opt.settings.publicExplorer} is detected.";
               example = false;
             };
+
             preferredNode = mkOption {
               type = str;
               default = "seed.radicle.garden";
             };
           };
+
           vscode = {
             enable = mkEnableOption "`rad:`-URI handling by VSCode";
             extension = mkOption {
@@ -101,6 +106,7 @@ in
             };
           };
         };
+
         web-rad =
           let
             detected =
@@ -117,6 +123,7 @@ in
           in
           {
             enable = mkEnableOption "`web+rad:`-URI handling by web browser";
+
             browser = mkOption {
               description = ''
                 Name of the XDG Desktop Entry for your browser.
@@ -131,6 +138,7 @@ in
             };
           };
       };
+
       environment = mkOption {
         type = attrsOf (
           nullOr (oneOf [
@@ -139,30 +147,37 @@ in
             package
           ])
         );
+
         default = {
           RUST_LOG = "info";
           RUST_BACKTRACE = "1";
         };
       };
+
       node = {
         args = mkOption {
           type = str;
           default = "--listen 0.0.0.0:8776 --force";
         };
+
         package = mkPackageOption pkgs "radicle-node" { };
       };
+
       httpd = {
         args = mkOption {
           type = str;
           default = "--listen 127.0.0.1:8080";
         };
+
         package = mkPackageOption pkgs "radicle-httpd" { };
       };
+
       settings = freeform {
         publicExplorer = mkOption {
           type = str;
           default = "https://app.radicle.xyz/nodes/$host/$rid$path";
         };
+
         preferredSeeds = mkOption {
           type = listOf str;
           default = [
@@ -170,6 +185,7 @@ in
             "z6Mkmqogy2qEM2ummccUthFEaaHvyYmYBYh3dbe9W4ebScxo@ash.radicle.garden:8776"
           ];
         };
+
         web = freeform {
           pinned = freeform {
             repositories = mkOption {
@@ -178,25 +194,30 @@ in
             };
           };
         };
+
         cli = freeform {
           hints = mkOption {
             type = bool;
             default = true;
           };
         };
+
         node = freeform {
           alias = mkOption {
             type = str;
             default = config.home.username;
           };
+
           network = mkOption {
             type = str;
             default = "main";
           };
+
           relay = mkOption {
             type = bool;
             default = true;
           };
+
           peers = freeform {
             type = mkOption {
               type = enum [
@@ -210,10 +231,12 @@ in
               default = 8;
             };
           };
+
           workers = mkOption {
             type = ints.unsigned;
             default = 8;
           };
+
           policy = mkOption {
             type = enum [
               "allow"
@@ -221,6 +244,7 @@ in
             ];
             default = "block";
           };
+
           scope = mkOption {
             type = enum [
               "all"
@@ -239,6 +263,7 @@ in
         assertion = cfg.uri.web-rad.enable -> cfg.uri.web-rad.browser != null;
         message = "Could not detect preferred browser. Please set `${builtins.toString opt.uri.web-rad.browser}`.";
       }
+
       {
         assertion =
           1 >= length (
@@ -249,6 +274,7 @@ in
           );
         message = "At most one `rad:`-URI handler may be enabled.";
       }
+
       {
         assertion =
           cfg.uri.rad.browser.enable -> hasSuffix publicExplorerSuffix cfg.settings.publicExplorer;
@@ -286,6 +312,7 @@ in
         );
         "x-scheme-handler/web+rad" = mkIf cfg.uri.web-rad.enable (mkDefault cfg.uri.web-rad.browser);
       };
+
       desktopEntries =
         let
           handler =
@@ -301,6 +328,7 @@ in
                 "Development"
                 "RevisionControl"
               ];
+
               exec = getExe (
                 pkgs.writeShellApplication {
                   name = "rad-to-${shortName}";
@@ -308,6 +336,7 @@ in
                   text = ''xdg-open "${prefix}$1"'';
                 }
               );
+
               mimeType = [ "x-scheme-handler/rad" ];
               noDisplay = true;
             };
@@ -318,6 +347,7 @@ in
               name = "rad-to-${v.shortName}";
               value = mkIf cfg.uri.rad.${v.shortName}.enable (handler v);
             })
+
             [
               {
                 name = "Web Browser";
