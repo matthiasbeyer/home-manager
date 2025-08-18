@@ -40,12 +40,15 @@ in
   options.services.radicle = {
     node = {
       enable = mkEnableOption "Radicle Node";
+
       package = mkPackageOption pkgs "radicle-node" { };
+
       args = mkOption {
         type = str;
         default = "";
         example = "--listen 0.0.0.0:8776";
       };
+
       environment = mkOption {
         type = attrsOf (
           nullOr (oneOf [
@@ -57,13 +60,17 @@ in
         default = { };
       };
     };
+
     httpd = {
       enable = mkEnableOption "Radicle HTTP Daemon";
+
       package = mkPackageOption pkgs "radicle-httpd" { };
+
       args = mkOption {
         type = str;
         default = "--listen 127.0.0.1:8080";
       };
+
       environment = mkOption {
         type = attrsOf (
           nullOr (oneOf [
@@ -86,6 +93,7 @@ in
           + "since `radicle-httpd` depends on `radicle-node`";
       }
     ];
+
     systemd.user = {
       services = {
         "radicle-keys" = {
@@ -98,13 +106,16 @@ in
             After = [ "default.target" ];
             Requires = [ "default.target" ];
           };
+
           Service = {
             Type = "oneshot";
             Slice = "background.slice";
             ExecStart = getExe (
               pkgs.writeShellApplication {
                 name = "radicle-keys.sh";
+
                 runtimeInputs = [ pkgs.coreutils ];
+
                 text =
                   let
                     keyFile = name: "${radicleHome}/keys/${name}";
@@ -143,6 +154,7 @@ in
             );
           };
         };
+
         "radicle-node" = mkIf cfg.node.enable {
           Unit = {
             Description = "Radicle Node";
@@ -153,6 +165,7 @@ in
               "man:radicle-node(1)"
             ];
           };
+
           Service = {
             Slice = "session.slice";
             ExecStart = "${getExe' cfg.node.package "radicle-node"} ${cfg.node.args}";
@@ -164,6 +177,7 @@ in
             RestartDelayMaxSec = "1min";
           };
         };
+
         "radicle-httpd" = mkIf cfg.httpd.enable {
           Unit = {
             Description = "Radicle HTTP Daemon";
@@ -174,6 +188,7 @@ in
               "man:radicle-httpd(1)"
             ];
           };
+
           Service = {
             Slice = "session.slice";
             ExecStart = "${getExe' cfg.httpd.package "radicle-httpd"} ${cfg.httpd.args}";
@@ -186,15 +201,18 @@ in
           };
         };
       };
+
       sockets."radicle-node" = mkIf cfg.node.enable {
         Unit = {
           Description = "Radicle Node Control Socket";
           Documentation = [ "man:radicle-node(1)" ];
         };
+
         Socket.ListenStream = "${radicleHome}/node/control.sock";
         Install.WantedBy = [ "sockets.target" ];
       };
     };
+
     programs.radicle.enable = mkDefault true;
   };
 
