@@ -37,8 +37,6 @@ let
   env = attrs: (mapAttrsToList (generators.mkKeyValueDefault { } "=") attrs) ++ gitPath;
 in
 {
-  meta.maintainers = with lib.maintainers; [ lorenzleutgeb ];
-
   options = {
     services.radicle = {
       node = {
@@ -201,4 +199,10 @@ in
     };
     programs.radicle.enable = mkDefault true;
   };
+
+  meta.maintainers = with lib.maintainers; [
+    lorenzleutgeb
+    matthiasbeyer
+  ];
+
 }
