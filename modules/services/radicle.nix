@@ -1,10 +1,32 @@
-{ config, lib, pkgs, options, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  options,
+  ...
+}:
 let
   inherit (lib)
-    generators getBin getExe getExe' mapAttrsToList mkDefault mkEnableOption
-    mkIf mkOption mkPackageOption;
+    generators
+    getBin
+    getExe
+    getExe'
+    mapAttrsToList
+    mkDefault
+    mkEnableOption
+    mkIf
+    mkOption
+    mkPackageOption
+    ;
 
-  inherit (lib.types) attrsOf nullOr oneOf package path str;
+  inherit (lib.types)
+    attrsOf
+    nullOr
+    oneOf
+    package
+    path
+    str
+    ;
 
   cfg = config.services.radicle;
   opt = options.services.radicle;
@@ -12,9 +34,9 @@ let
   radicleHome = config.home.homeDirectory + "/.radicle";
 
   gitPath = [ "PATH=${getBin config.programs.git.package}/bin" ];
-  env = attrs:
-    (mapAttrsToList (generators.mkKeyValueDefault { } "=") attrs) ++ gitPath;
-in {
+  env = attrs: (mapAttrsToList (generators.mkKeyValueDefault { } "=") attrs) ++ gitPath;
+in
+{
   meta.maintainers = with lib.maintainers; [ lorenzleutgeb ];
 
   options = {
@@ -28,7 +50,13 @@ in {
           example = "--listen 0.0.0.0:8776";
         };
         environment = mkOption {
-          type = attrsOf (nullOr (oneOf [ str path package ]));
+          type = attrsOf (
+            nullOr (oneOf [
+              str
+              path
+              package
+            ])
+          );
           default = { };
         };
       };
@@ -40,7 +68,13 @@ in {
           default = "--listen 127.0.0.1:8080";
         };
         environment = mkOption {
-          type = attrsOf (nullOr (oneOf [ str path package ]));
+          type = attrsOf (
+            nullOr (oneOf [
+              str
+              path
+              package
+            ])
+          );
           default = cfg.node.enable;
         };
       };
@@ -48,11 +82,14 @@ in {
   };
 
   config = mkIf (cfg.node.enable || cfg.httpd.enable) {
-    assertions = [{
-      assertion = cfg.httpd.enable -> cfg.node.enable;
-      message = "`${opt.httpd.enable}` requires `${opt.node.enable}`, "
-        + "since `radicle-httpd` depends on `radicle-node`";
-    }];
+    assertions = [
+      {
+        assertion = cfg.httpd.enable -> cfg.node.enable;
+        message =
+          "`${opt.httpd.enable}` requires `${opt.node.enable}`, "
+          + "since `radicle-httpd` depends on `radicle-node`";
+      }
+    ];
     systemd.user = {
       services = {
         "radicle-keys" = {
@@ -68,39 +105,46 @@ in {
           Service = {
             Type = "oneshot";
             Slice = "background.slice";
-            ExecStart = getExe (pkgs.writeShellApplication {
-              name = "radicle-keys.sh";
-              runtimeInputs = [ pkgs.coreutils ];
-              text = let
-                keyFile = name: "${radicleHome}/keys/${name}";
-                keyPair = name: [ (keyFile name) (keyFile (name + ".pub")) ];
-                radicleKeyPair = keyPair "radicle";
-              in ''
-                echo testing
-                FILES=(${builtins.concatStringsSep " " radicleKeyPair})
-                if stat --terse "''${FILES[@]}"
-                then
-                  # Happy path, we're done!
-                  exit 0
-                fi
+            ExecStart = getExe (
+              pkgs.writeShellApplication {
+                name = "radicle-keys.sh";
+                runtimeInputs = [ pkgs.coreutils ];
+                text =
+                  let
+                    keyFile = name: "${radicleHome}/keys/${name}";
+                    keyPair = name: [
+                      (keyFile name)
+                      (keyFile (name + ".pub"))
+                    ];
+                    radicleKeyPair = keyPair "radicle";
+                  in
+                  ''
+                    echo testing
+                    FILES=(${builtins.concatStringsSep " " radicleKeyPair})
+                    if stat --terse "''${FILES[@]}"
+                    then
+                      # Happy path, we're done!
+                      exit 0
+                    fi
 
-                cat <<EOM
-                At least one of the following files does not exist, but all should!
+                    cat <<EOM
+                    At least one of the following files does not exist, but all should!
 
-                $(printf '  %s\n' "''${FILES[@]}")
+                    $(printf '  %s\n' "''${FILES[@]}")
 
-                In order for Radicle to work, please initialize by executing
+                    In order for Radicle to work, please initialize by executing
 
-                  rad auth
+                      rad auth
 
-                or provisioning pre-existing keys manually, e.g.
+                    or provisioning pre-existing keys manually, e.g.
 
-                  ln -s ~/.ssh/id_ed25519     ${keyFile "radicle"}
-                  ln -s ~/.ssh/id_ed25519.pub ${keyFile "radicle.pub"}
-                EOM
-                exit 1
-              '';
-            });
+                      ln -s ~/.ssh/id_ed25519     ${keyFile "radicle"}
+                      ln -s ~/.ssh/id_ed25519.pub ${keyFile "radicle.pub"}
+                    EOM
+                    exit 1
+                  '';
+              }
+            );
           };
         };
         "radicle-node" = mkIf cfg.node.enable {
@@ -108,13 +152,14 @@ in {
             Description = "Radicle Node";
             After = [ "radicle-keys.service" ];
             Requires = [ "radicle-keys.service" ];
-            Documentation =
-              [ "https://radicle.xyz/guides" "man:radicle-node(1)" ];
+            Documentation = [
+              "https://radicle.xyz/guides"
+              "man:radicle-node(1)"
+            ];
           };
           Service = {
             Slice = "session.slice";
-            ExecStart =
-              "${getExe' cfg.node.package "radicle-node"} ${cfg.node.args}";
+            ExecStart = "${getExe' cfg.node.package "radicle-node"} ${cfg.node.args}";
             Environment = env cfg.node.environment;
             KillMode = "process";
             Restart = "always";
@@ -128,13 +173,14 @@ in {
             Description = "Radicle HTTP Daemon";
             After = [ "radicle-node.service" ];
             Requires = [ "radicle-node.service" ];
-            Documentation =
-              [ "https://radicle.xyz/guides" "man:radicle-httpd(1)" ];
+            Documentation = [
+              "https://radicle.xyz/guides"
+              "man:radicle-httpd(1)"
+            ];
           };
           Service = {
             Slice = "session.slice";
-            ExecStart =
-              "${getExe' cfg.httpd.package "radicle-httpd"} ${cfg.httpd.args}";
+            ExecStart = "${getExe' cfg.httpd.package "radicle-httpd"} ${cfg.httpd.args}";
             Environment = env cfg.httpd.environment;
             KillMode = "process";
             Restart = "always";
