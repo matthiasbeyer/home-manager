@@ -295,20 +295,22 @@ in
 
     xdg = {
       mimeApps.defaultApplications = {
-        "x-scheme-handler/rad" = mkIf (cfg.uri.rad.browser.enable || cfg.uri.rad.vscode.enable) (
-          mkDefault (
-            "rad-to-"
-            + (
+        "x-scheme-handler/rad" =
+          let
+            isEnabled = cfg.uri.rad.browser.enable || cfg.uri.rad.vscode.enable;
+
+            handlerTarget =
               if cfg.uri.rad.browser.enable then
-                "browser"
+                "rad-to-browser.desktop"
               else if cfg.uri.rad.vscode.enable then
-                "vscode"
+                "rad-to-vscode.desktop"
               else
-                throw "unreachable"
-            )
-            + ".desktop"
-          )
-        );
+                throw "unreachable";
+
+            handler = mkDefault handlerTarget;
+          in
+          mkIf isEnabled handler;
+
         "x-scheme-handler/web+rad" = mkIf cfg.uri.web-rad.enable (mkDefault cfg.uri.web-rad.browser);
       };
 
