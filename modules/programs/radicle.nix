@@ -316,7 +316,7 @@ in
 
       desktopEntries =
         let
-          handler =
+          mkHandler =
             {
               name,
               shortName,
@@ -341,33 +341,32 @@ in
               mimeType = [ "x-scheme-handler/rad" ];
               noDisplay = true;
             };
+
+          toHandler = v: {
+            name = "rad-to-${v.shortName}";
+            value = mkIf cfg.uri.rad.${v.shortName}.enable (mkHandler v);
+          };
         in
         listToAttrs (
-          map
-            (v: {
-              name = "rad-to-${v.shortName}";
-              value = mkIf cfg.uri.rad.${v.shortName}.enable (handler v);
-            })
-
-            [
-              {
-                name = "Web Browser";
-                shortName = "browser";
-                prefix =
-                  replaceStrings
-                    [ "$host" publicExplorerSuffix ]
-                    [
-                      cfg.uri.rad.browser.preferredNode
-                      ""
-                    ]
-                    cfg.settings.publicExplorer;
-              }
-              {
-                name = "VSCode";
-                shortName = "vscode";
-                prefix = "vscode://${cfg.uri.rad.vscode.extension}/";
-              }
-            ]
+          map toHandler [
+            {
+              name = "Web Browser";
+              shortName = "browser";
+              prefix =
+                replaceStrings
+                  [ "$host" publicExplorerSuffix ]
+                  [
+                    cfg.uri.rad.browser.preferredNode
+                    ""
+                  ]
+                  cfg.settings.publicExplorer;
+            }
+            {
+              name = "VSCode";
+              shortName = "vscode";
+              prefix = "vscode://${cfg.uri.rad.vscode.extension}/";
+            }
+          ]
         );
     };
   };
