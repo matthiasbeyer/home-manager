@@ -37,44 +37,42 @@ let
   env = attrs: (mapAttrsToList (generators.mkKeyValueDefault { } "=") attrs) ++ gitPath;
 in
 {
-  options = {
-    services.radicle = {
-      node = {
-        enable = mkEnableOption "Radicle Node";
-        package = mkPackageOption pkgs "radicle-node" { };
-        args = mkOption {
-          type = str;
-          default = "";
-          example = "--listen 0.0.0.0:8776";
-        };
-        environment = mkOption {
-          type = attrsOf (
-            nullOr (oneOf [
-              str
-              path
-              package
-            ])
-          );
-          default = { };
-        };
+  options.services.radicle = {
+    node = {
+      enable = mkEnableOption "Radicle Node";
+      package = mkPackageOption pkgs "radicle-node" { };
+      args = mkOption {
+        type = str;
+        default = "";
+        example = "--listen 0.0.0.0:8776";
       };
-      httpd = {
-        enable = mkEnableOption "Radicle HTTP Daemon";
-        package = mkPackageOption pkgs "radicle-httpd" { };
-        args = mkOption {
-          type = str;
-          default = "--listen 127.0.0.1:8080";
-        };
-        environment = mkOption {
-          type = attrsOf (
-            nullOr (oneOf [
-              str
-              path
-              package
-            ])
-          );
-          default = cfg.node.enable;
-        };
+      environment = mkOption {
+        type = attrsOf (
+          nullOr (oneOf [
+            str
+            path
+            package
+          ])
+        );
+        default = { };
+      };
+    };
+    httpd = {
+      enable = mkEnableOption "Radicle HTTP Daemon";
+      package = mkPackageOption pkgs "radicle-httpd" { };
+      args = mkOption {
+        type = str;
+        default = "--listen 127.0.0.1:8080";
+      };
+      environment = mkOption {
+        type = attrsOf (
+          nullOr (oneOf [
+            str
+            path
+            package
+          ])
+        );
+        default = cfg.node.enable;
       };
     };
   };
