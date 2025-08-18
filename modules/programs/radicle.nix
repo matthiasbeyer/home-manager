@@ -118,7 +118,7 @@ in
                   }
                 );
               in
-              if detectionList == [ ] then null else head detectionList;
+              lib.optionals (detectionList == [ ]) (head detectionList);
           in
           {
             enable = mkEnableOption "`web+rad:`-URI handling by web browser";
