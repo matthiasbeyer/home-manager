@@ -252,7 +252,7 @@ in
       {
         assertion =
           cfg.uri.rad.browser.enable -> hasSuffix publicExplorerSuffix cfg.settings.publicExplorer;
-        message = "${opt.uri.rad.browser.enable} is only compatible with ${cfg.settings.publicExplorer} ending in '${publicExplorerSuffix}.";
+        message = "${opt.uri.rad.browser.enable} is only compatible with ${cfg.settings.publicExplorer} ending in '${publicExplorerSuffix}'.";
       }
     ];
 
