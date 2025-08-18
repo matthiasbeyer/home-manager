@@ -110,8 +110,8 @@ in
           Service = {
             Type = "oneshot";
             Slice = "background.slice";
-            ExecStart = getExe (
-              pkgs.writeShellApplication {
+            ExecStart = let
+              radicle-keys-script = pkgs.writeShellApplication {
                 name = "radicle-keys.sh";
 
                 runtimeInputs = [ pkgs.coreutils ];
@@ -150,8 +150,8 @@ in
                     EOM
                     exit 1
                   '';
-              }
-            );
+              };
+            in getExe radicle-keys-script;
           };
         };
 
